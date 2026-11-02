@@ -1,0 +1,8 @@
+vendor
+.git
+.env
+websocket/node_modules
+storage/attachments/*
+!storage/attachments/.gitkeep
+storage/mail/*
+!storage/mail/.gitkeep

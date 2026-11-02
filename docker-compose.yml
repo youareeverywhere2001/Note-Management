@@ -1,0 +1,64 @@
+# Chạy:  cp .env.example .env  (đặt WS_SECRET, GEMINI_API_KEY)  rồi  docker compose up --build
+# Cấu hình DB trong file này là của DOCKER (host "db"). Cấu hình XAMPP nằm trong .env (DB_HOST=127.0.0.1) — không trộn lẫn.
+services:
+  web:
+    build: .
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: note_management
+      DB_USER: note_app
+      DB_PASS: note_app_pass
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      MAIL_FROM: no-reply@noteapp.local
+      APP_URL: "${APP_URL:-}"
+      WS_SECRET: "${WS_SECRET:?Hãy đặt WS_SECRET trong file .env (openssl rand -hex 32)}"
+      WS_PUBLIC_URL: "${WS_PUBLIC_URL:-ws://localhost:8081}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      GEMINI_MODEL: "${GEMINI_MODEL:-gemini-3.8-flash}"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads:/var/www/html/public/uploads
+      - attachments:/var/www/html/storage/attachments
+  ws:
+    build: ./websocket
+    ports:
+      - "${WS_PORT:-8081}:8081"
+    environment:
+      WS_PORT: "8081"
+      WS_SECRET: "${WS_SECRET:?Hãy đặt WS_SECRET trong file .env}"
+      PHP_INTERNAL_URL: http://web
+      WS_ALLOWED_ORIGINS: "${WS_ALLOWED_ORIGINS:-http://localhost:8080}"
+    depends_on:
+      - web
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: note_management
+      MYSQL_USER: note_app
+      MYSQL_PASSWORD: note_app_pass
+      MYSQL_ROOT_PASSWORD: rootpass
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d:ro   # 01_schema.sql + 02_seed.sql chạy ở lần khởi tạo đầu tiên
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "${MAIL_UI_PORT:-8025}:8025"
+volumes:
+  dbdata:
+  uploads:
+  attachments:

@@ -1,0 +1,6 @@
+# Chặn truy cập trực tiếp các file/thư mục không phải là trang web (khi chạy trong XAMPP/htdocs)
+Options -Indexes
+<FilesMatch "^(\.env.*|\.git.*|composer\.(json|lock)|docker-compose\.yml|Dockerfile|README\.md)$">
+  Require all denied
+</FilesMatch>
+RedirectMatch 403 "(^|/)(storage|src|sql|migrations|websocket|docker|vendor)(/|$)"

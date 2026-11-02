@@ -1,0 +1,9 @@
+{
+  "name": "note-management-websocket",
+  "version": "1.0.0",
+  "description": "Máy chủ WebSocket cộng tác thời gian thực cho Note Management",
+  "main": "server.js",
+  "scripts": { "start": "node server.js", "test": "node selftest.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "ws": "^8.22.1" }
+}
